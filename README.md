@@ -1,2 +1,4 @@
 # guide-to-interpreters-series
-This repositiory contains all steps and evolutions of the Programming Language From Scratch - Beginners Guide To Building Interpreters series on my youtube channel.
+This repository follows the Series for Building Interpreters and a Custom Language in Javascript. The series is still ongoing and new episodes will correspond to a new folder in the repository for easy lookup.
+
+The series: [Video Playlist](https://www.youtube.com/playlist?list=PL_2VhOvlMk4UHGqYCLWc6GO8FaPl8fQTh)
