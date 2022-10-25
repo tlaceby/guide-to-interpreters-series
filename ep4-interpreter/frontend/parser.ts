@@ -3,6 +3,7 @@ import {
   BinaryExpr,
   Expr,
   Identifier,
+  NullLiteral,
   NumericLiteral,
   Program,
   Stmt,
@@ -130,6 +131,10 @@ export default class Parser {
       // User defined values.
       case TokenType.Identifier:
         return { kind: "Identifier", symbol: this.eat().value } as Identifier;
+
+      case TokenType.Null:
+        this.eat(); // advance past null keyword
+        return { kind: "NullLiteral", value: "null" } as NullLiteral;
 
       // Constants and Numeric Constants
       case TokenType.Number:
