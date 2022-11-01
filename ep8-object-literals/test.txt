@@ -1,4 +1,4 @@
-const foo = 45 / 2;
+let foo = 50 / 2;
 
 const obj = {
   x: 100,
@@ -10,3 +10,4 @@ const obj = {
 };
 
 let f = object.complex.bar;
+foo = obj.foo + 5
