@@ -9,5 +9,5 @@ const obj = {
   },
 };
 
-let f = object.complex.bar;
-foo = obj.foo + 5
+foo = obj.complex.bar + 5
+
