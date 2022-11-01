@@ -6,9 +6,10 @@
 // -----------------------------------------------------------
 
 export type NodeType =
+  // STATEMENTS
   | "Program"
-  | "MemberExpr"
-  | "CallExpr"
+  | "VarDeclaration"
+  // EXPRESSIONS
   | "NumericLiteral"
   | "Identifier"
   | "BinaryExpr";
@@ -29,6 +30,13 @@ export interface Program extends Stmt {
   body: Stmt[];
 }
 
+export interface VarDeclaration extends Stmt {
+  kind: "VarDeclaration";
+  constant: boolean;
+  identifier: string;
+  value?: Expr;
+}
+
 /**  Expressions will result in a value at runtime unlike Statements */
 export interface Expr extends Stmt {}
 
@@ -42,25 +50,6 @@ export interface BinaryExpr extends Expr {
   left: Expr;
   right: Expr;
   operator: string; // needs to be of type BinaryOperator
-}
-
-/**
- * Member expressions are expressions which contains the . operator or [indx] operator.
- */
-export interface MemberExpr extends Expr {
-  kind: "MemberExpr";
-  object: Expr;
-  property: Expr;
-  computed: boolean;
-}
-
-/**
- * Call Expression has the caller and the arguments as a array of expressions
- */
-export interface CallExpr extends Expr {
-  kind: "CallExpr";
-  caller: Expr;
-  arguments: Expr[];
 }
 
 // LITERAL / PRIMARY EXPRESSION TYPES

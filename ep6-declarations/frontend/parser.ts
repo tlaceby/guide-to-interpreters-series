@@ -1,13 +1,12 @@
 // deno-lint-ignore-file no-explicit-any
 import {
   BinaryExpr,
-  CallExpr,
   Expr,
   Identifier,
-  MemberExpr,
   NumericLiteral,
   Program,
   Stmt,
+  VarDeclaration,
 } from "./ast.ts";
 
 import { Token, tokenize, TokenType } from "./lexer.ts";
@@ -72,7 +71,55 @@ export default class Parser {
   // Handle complex statement types
   private parse_stmt(): Stmt {
     // skip to parse_expr
-    return this.parse_expr();
+    switch (this.at().type) {
+      case TokenType.Let:
+      case TokenType.Const:
+        return this.parse_var_declaration();
+      default:
+        return this.parse_expr();
+    }
+  }
+
+  // LET IDENT;
+  // ( LET | CONST ) IDENT = EXPR;
+  parse_var_declaration(): Stmt {
+    const isConstant = this.eat().type == TokenType.Const;
+    const identifier = this.expect(
+      TokenType.Identifier,
+      "Expected identifier name following let | const keywords.",
+    ).value;
+
+    if (this.at().type == TokenType.Semicolon) {
+      this.eat(); // expect semicolon
+      if (isConstant) {
+        throw "Must assigne value to constant expression. No value provided.";
+      }
+
+      return {
+        kind: "VarDeclaration",
+        identifier,
+        constant: false,
+      } as VarDeclaration;
+    }
+
+    this.expect(
+      TokenType.Equals,
+      "Expected equals token following identifier in var declaration.",
+    );
+
+    const declaration = {
+      kind: "VarDeclaration",
+      value: this.parse_expr(),
+      identifier,
+      constant: isConstant,
+    } as VarDeclaration;
+
+    this.expect(
+      TokenType.Semicolon,
+      "Variable declaration statment must end with semicolon.",
+    );
+
+    return declaration;
   }
 
   // Handle expressions
@@ -100,13 +147,13 @@ export default class Parser {
 
   // Handle Multiplication, Division & Modulo Operations
   private parse_multiplicitave_expr(): Expr {
-    let left = this.parse_call_member_expr();
+    let left = this.parse_primary_expr();
 
     while (
       this.at().value == "/" || this.at().value == "*" || this.at().value == "%"
     ) {
       const operator = this.eat().value;
-      const right = this.parse_call_member_expr();
+      const right = this.parse_primary_expr();
       left = {
         kind: "BinaryExpr",
         left,
@@ -118,101 +165,15 @@ export default class Parser {
     return left;
   }
 
-  private parse_call_member_expr(): Expr {
-    const member = this.parse_member_expr();
-    if (this.at().type == TokenType.OpenParen) {
-      return this.parse_call_expr(member);
-    }
-
-    return member;
-  }
-
-  private parse_call_expr(caller: Expr): Expr {
-    let callexpr: Expr = {
-      kind: "CallExpr",
-      caller,
-      arguments: this.parse_args(),
-    } as CallExpr;
-
-    if (this.at().type == TokenType.OpenParen) {
-      callexpr = this.parse_call_expr(callexpr);
-    }
-
-    return callexpr;
-  }
-
-  private parse_args() {
-    this.expect(TokenType.OpenParen, "Expected opening parenthesis.");
-    const argumentsList = this.at().type == TokenType.CloseParen
-      ? []
-      : this.parse_arguments_list();
-
-    this.expect(
-      TokenType.CloseParen,
-      "Expected closing parenthesis after function call.",
-    );
-    return argumentsList;
-  }
-
-  private parse_arguments_list(): Expr[] {
-    const args = [this.parse_expr()];
-    while (this.at().type == TokenType.Comma && this.eat()) {
-      args.push(this.parse_expr());
-    }
-    return args;
-  }
-
-  private parse_member_expr(): Expr {
-    let object = this.parse_primary_expr();
-
-    while (this.at().value == "." || this.at().value == "[") {
-      const operator = this.eat();
-      let property: Expr;
-      let computed: boolean;
-
-      // Handle non computed properties
-      if (operator.type == TokenType.Dot) {
-        computed = false;
-        property = this.parse_primary_expr();
-        // this should be a identifier if the member is not computed
-        if (property.kind != "Identifier") {
-          console.error(
-            "Member expression expectes property to be valid Identifier. Instead recieved:",
-            property,
-          );
-          Deno.exit(1);
-        }
-      } // Handle computed bracket access
-      else {
-        computed = true;
-        property = this.parse_expr();
-        this.expect(
-          TokenType.CloseBracket,
-          "Expected closing bracket inside member expression",
-        );
-      }
-
-      object = {
-        kind: "MemberExpr",
-        object,
-        computed,
-        property,
-      } as MemberExpr;
-    }
-
-    return object;
-  }
-
   // Orders Of Prescidence
   // AdditiveExpr
   // MultiplicitaveExpr
-  // CallMember
-  // MemberExpr
   // PrimaryExpr
 
   // Parse Literal Values & Grouping Expressions
   private parse_primary_expr(): Expr {
     const tk = this.at().type;
+
     // Determine which token we are currently at and return literal value
     switch (tk) {
       // User defined values.
@@ -239,10 +200,7 @@ export default class Parser {
 
       // Unidentified Tokens and Invalid Code Reached
       default:
-        console.error(
-          "Unexpected token found during parsing!",
-          this.at(),
-        );
+        console.error("Unexpected token found during parsing!", this.at());
         Deno.exit(1);
     }
   }
