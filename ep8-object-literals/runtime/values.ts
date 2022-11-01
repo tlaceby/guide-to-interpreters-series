@@ -1,4 +1,4 @@
-export type ValueType = "null" | "number" | "boolean";
+export type ValueType = "null" | "number" | "boolean" | "object";
 
 export interface RuntimeVal {
   type: ValueType;
@@ -35,4 +35,12 @@ export interface NumberVal extends RuntimeVal {
 
 export function MK_NUMBER(n = 0) {
   return { type: "number", value: n } as NumberVal;
+}
+
+/**
+ * Runtime value that has access to the raw native javascript number.
+ */
+export interface ObjectVal extends RuntimeVal {
+  type: "object";
+  properties: Map<string, RuntimeVal>;
 }
