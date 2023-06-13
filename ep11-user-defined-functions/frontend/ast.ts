@@ -1,5 +1,5 @@
 // deno-lint-ignore-file no-empty-interface
-// https://github.com/tylerlaceby/guide-to-interpreters-series
+// https://github.com/tlaceby/guide-to-interpreters-series
 
 // -----------------------------------------------------------
 // --------------          AST TYPES        ------------------

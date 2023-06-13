@@ -1,4 +1,4 @@
-// https://github.com/tylerlaceby/guide-to-interpreters-series
+// https://github.com/tlaceby/guide-to-interpreters-series
 // -----------------------------------------------------------
 // ---------------          LEXER          -------------------
 // ---  Responsible for producing tokens from the source   ---
